@@ -285,9 +285,19 @@ function parseISODateTime(isoString) {
           action: 'getLastRecognizedSchedule'
         });
         
-        if (response.schedule && response.schedule.logseqContent) {
+        if (response.schedule && response.schedule.events[index]) {
           try {
-            await navigator.clipboard.writeText(response.schedule.logseqContent);
+            const event = response.schedule.events[index];
+            const startDate = parseISODateTime(event.startDate);
+            const logseqContent = `- TODO ${event.title} ${event.location ? `@${event.location}` : ''} #Event\n` +
+              `  SCHEDULED: <${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')} ` +
+              `${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][startDate.getDay()]} ` +
+              `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}>\n` +
+              `  :AGENDA:\n` +
+              `  estimated: ${Math.ceil((parseISODateTime(event.endDate) - startDate) / (1000 * 60 * 60))}h\n` +
+              `  :END:`;
+
+            await navigator.clipboard.writeText(logseqContent);
             setButtonSuccess(button, '✓ 已复制');
           } catch (error) {
             console.error('复制失败:', error);
