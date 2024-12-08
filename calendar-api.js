@@ -74,9 +74,74 @@ class GoogleCalendarAPI {
     }
   }
 
+  // 生成 ICS 文件内容
+  generateICSContent(event) {
+    try {
+      const now = new Date().toISOString().replace(/[-:.]/g, '');
+      const start = this.formatDateTimeForICS(event.startDate);
+      const end = this.formatDateTimeForICS(event.endDate);
+      
+      // 转义特殊字符
+      const escapeText = (text) => {
+        if (!text) return '';
+        return text
+          .replace(/[\\;,]/g, (match) => '\\' + match)
+          .replace(/\n/g, '\\n');
+      };
+
+      const icsContent = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//AI4Calendar//Event Generator//CN',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+        'BEGIN:VEVENT',
+        `DTSTART:${start}`,
+        `DTEND:${end}`,
+        `DTSTAMP:${now}`,
+        `UID:${now}-${Math.random().toString(36).substring(2)}@ai4calendar`,
+        `SUMMARY:${escapeText(event.title)}`,
+        event.location ? `LOCATION:${escapeText(event.location)}` : '',
+        event.description ? `DESCRIPTION:${escapeText(event.description)}` : '',
+        'END:VEVENT',
+        'END:VCALENDAR'
+      ].filter(Boolean).join('\r\n');
+
+      return icsContent;
+    } catch (error) {
+      console.error('生成 ICS 内容失败:', error);
+      throw error;
+    }
+  }
+
+  // 下载 ICS 文件
+  downloadICSFile(event) {
+    try {
+      const icsContent = this.generateICSContent(event);
+      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${event.title || 'event'}.ics`;
+      document.body.appendChild(link);
+      link.click();
+      
+      // 清理
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 100);
+
+      return { success: true };
+    } catch (error) {
+      console.error('下载 ICS 文件失败:', error);
+      throw error;
+    }
+  }
+
   formatDateTime(isoString) {
     try {
-      // 将 "20240321T100000Z" 格式转换为 "2024-03-21T10:00:00Z"
       const formatted = isoString.replace(
         /(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z/,
         '$1-$2-$3T$4:$5:$6Z'
@@ -88,6 +153,16 @@ class GoogleCalendarAPI {
       throw error;
     }
   }
+
+  formatDateTimeForICS(isoString) {
+    try {
+      // 确保时间是 UTC 格式
+      return isoString.replace(/[-:]/g, '');
+    } catch (error) {
+      console.error('ICS 时间格式化失败:', error);
+      throw error;
+    }
+  }
 }
 
-export const calendarAPI = new GoogleCalendarAPI(); 
+export const calendarAPI = new GoogleCalendarAPI();

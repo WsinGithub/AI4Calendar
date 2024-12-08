@@ -164,12 +164,35 @@ document.addEventListener('DOMContentLoaded', async function() {
             <button data-action="copyLogseq" data-index="${index}" class="secondary-btn">
               复制 Logseq 格式
             </button>
+            <button data-action="download-ics" data-index="${index}" class="secondary-btn">
+              下载 ICS
+            </button>
           </div>
         </div>
       `;
     });
 
     scheduleList.innerHTML = scheduleHtml;
+    
+    // 为下载 ICS 按钮添加事件处理
+    const downloadButtons = scheduleList.querySelectorAll('[data-action="download-ics"]');
+    downloadButtons.forEach(button => {
+      button.addEventListener('click', async () => {
+        try {
+          const index = parseInt(button.dataset.index);
+          await calendarAPI.downloadICSFile(schedule.events[index]);
+          setButtonSuccess(button, '已下载');
+        } catch (error) {
+          console.error('下载 ICS 失败:', error);
+          button.textContent = '下载失败';
+          button.style.background = '#DC3545';
+          setTimeout(() => {
+            button.textContent = '下载 ICS';
+            button.style.background = '#34A853';
+          }, 3000);
+        }
+      });
+    });
   }
 
 // 解析 ISO 格式的时间字符串

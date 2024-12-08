@@ -437,6 +437,19 @@
   
   <div id="scheduleList"></div>
   
+  <template id="scheduleTemplate">
+    <div class="schedule-card">
+      <div class="schedule-title"></div>
+      <div class="schedule-time"></div>
+      <div class="schedule-description"></div>
+      <div class="confidence"></div>
+      <div style="display: flex; gap: 8px;">
+        <button class="add-to-calendar-btn">添加到日历</button>
+        <button class="download-ics-btn" style="background: #34A853;">下载 ICS</button>
+      </div>
+    </div>
+  </template>
+  
   <div class="settings-panel">
     <input type="password" 
            id="apiKeyInput" 
