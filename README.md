@@ -12,7 +12,7 @@ AI4Calendar 是一个智能的 Chrome 扩展，它可以自动识别网页中的
 - ⚡ 无需授权：使用 Google Calendar 快速添加链接，无需账号授权
 
 <!-- ![扩展界面预览](./images/screenshot.png) -->
-![google-demo](./ai4calendar-google-demo.gif)
+![google-demo](./images/ai4calendar-google-demo.gif)
 
 
 ## 安装方法
