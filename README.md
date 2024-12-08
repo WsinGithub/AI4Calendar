@@ -1,6 +1,6 @@
 # AI4Calendar Chrome 扩展
 
-AI4Calendar 是一个智能的 Chrome 扩展，它可以自动识别网页中的日程信息，并提供快速添加到 Google Calendar 或复制到 Logseq 的功能。
+AI4Calendar 是一个智能的 Chrome 扩展，它可以自动识别网页中的日程信息（支持同时识别多个事件），并提供快速添加到 Google Calendar 或复制到 Logseq 的功能。
 
 ## 主要功能
 
