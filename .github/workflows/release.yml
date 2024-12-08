@@ -1,0 +1,63 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*' # 触发条件：推送以 v 开头的标签
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # 需要写入权限来创建 release
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # 获取完整的 git 历史用于生成更新日志
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Create Release ZIP
+        run: |
+          zip -r AI4Calendar-${{ github.ref_name }}.zip \
+            background.js \
+            cache-manager.js \
+            calendar-api.js \
+            config.js \
+            content.css \
+            content.js \
+            images/ \
+            manifest.json \
+            popup.html \
+            popup.js \
+            README.md \
+            sidebar.html \
+            sidebar.js \
+            utils/
+
+      - name: Generate Release Notes
+        id: release_notes
+        run: |
+          # 获取上一个标签
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$PREVIOUS_TAG" ]; then
+            # 如果没有上一个标签，获取所有提交
+            git log --pretty=format:"- %s" > CHANGELOG.md
+          else
+            # 获取从上一个标签到现在的提交
+            git log --pretty=format:"- %s" $PREVIOUS_TAG..HEAD > CHANGELOG.md
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: AI4Calendar-${{ github.ref_name }}.zip
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: Release ${{ github.ref_name }}
+          generate_release_notes: true
