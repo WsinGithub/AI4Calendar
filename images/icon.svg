@@ -1,21 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="128" height="128" version="1.1" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
-  <!-- 漏斗形状 -->
-  <path d="M20 20 L108 20 L80 60 L80 100 L48 120 L48 60 Z" 
-        fill="#4285f4" 
-        stroke="#ffffff" 
-        stroke-width="4"/>
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景圆角矩形 -->
+  <rect x="12" y="12" width="104" height="104" rx="16" fill="#4285f4"/>
   
-  <!-- 日历图标 -->
-  <g transform="translate(48, 8) scale(0.6)">
-    <rect x="10" y="20" width="80" height="60" rx="4" 
-          fill="#ffffff"/>
-    <rect x="25" y="10" width="6" height="16" rx="2" 
-          fill="#ffffff"/>
-    <rect x="69" y="10" width="6" height="16" rx="2" 
-          fill="#ffffff"/>
-    <line x1="10" y1="40" x2="90" y2="40" 
-          stroke="#4285f4" 
-          stroke-width="2"/>
+  <!-- 日历顶部栏 -->
+  <rect x="12" y="12" width="104" height="28" rx="16" fill="#1a73e8"/>
+  
+  <!-- AI 图案 -->
+  <g fill="white">
+    <!-- 字母 A -->
+    <path d="M44 40 L54 88 L64 88 L74 40 L66 40 L60 76 L54 40 Z" />
+    <!-- 字母 I -->
+    <rect x="84" y="40" width="8" height="48" />
   </g>
-</svg> 
+  
+  <!-- 装饰点 -->
+  <circle cx="36" cy="26" r="4" fill="white"/>
+  <circle cx="92" cy="26" r="4" fill="white"/>
+  
+  <!-- 日历线条 -->
+  <g stroke="white" stroke-width="2" opacity="0.6">
+    <line x1="30" y1="52" x2="98" y2="52"/>
+    <line x1="30" y1="68" x2="98" y2="68"/>
+    <line x1="30" y1="84" x2="98" y2="84"/>
+  </g>
+</svg>

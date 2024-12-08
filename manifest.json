@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "日程识别助手",
-  "version": "1.0",
-  "description": "识别页面中的日程信息并生成 ICS 文件",
+  "name": "AI4Calendar - 智能日程助手",
+  "version": "0.4.0",
+  "description": "使用 AI 智能识别网页中的日程信息，支持一键添加到 Google Calendar 或导出 ICS 文件",
   "permissions": [
     "activeTab",
     "storage",
@@ -18,9 +18,16 @@
     "<all_urls>"
   ],
   "action": {
-    "default_icon": "images/icon.svg"
+    "default_icon": {
+      "16": "images/icon16.png",
+      "32": "images/icon32.png"
+    },
+    "default_title": "AI4Calendar"
   },
   "icons": {
+    "16": "images/icon16.png",
+    "32": "images/icon32.png",
+    "48": "images/icon48.png",
     "128": "images/icon.svg"
   },
   "side_panel": {
