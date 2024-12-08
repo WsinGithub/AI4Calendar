@@ -1,0 +1,47 @@
+{
+  "manifest_version": 3,
+  "name": "日程识别助手",
+  "version": "1.0",
+  "description": "识别页面中的日程信息并生成 ICS 文件",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "downloads",
+    "scripting",
+    "tabs",
+    "sidePanel",
+    "https://api.openai.com/*",
+    "identity",
+    "identity.email"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "action": {
+    "default_icon": "images/icon.svg"
+  },
+  "icons": {
+    "128": "images/icon.svg"
+  },
+  "side_panel": {
+    "default_path": "sidebar.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://mail.google.com/*", "*://*/*"],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "oauth2": {
+    "client_id": "704840528023-alhe8tqss81a979k2mc3cttcpk860rdu.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/calendar.events",
+      "https://www.googleapis.com/auth/calendar.readonly",
+      "https://www.googleapis.com/auth/calendar"
+    ]
+  }
+}

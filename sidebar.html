@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      width: 300px;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+    
+    .schedule-card {
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      background: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .schedule-title {
+      font-size: 16px;
+      font-weight: 500;
+      color: #202124;
+      margin-bottom: 8px;
+    }
+    
+    .schedule-time {
+      font-size: 14px;
+      color: #5f6368;
+      margin-bottom: 8px;
+    }
+    
+    .schedule-description {
+      font-size: 14px;
+      color: #3c4043;
+      margin-bottom: 12px;
+    }
+    
+    button {
+      background: #4285f4;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      width: 100%;
+    }
+    
+    button:hover {
+      background: #3b78e7;
+    }
+
+    .no-schedule {
+      color: #5f6368;
+      text-align: center;
+      margin-top: 24px;
+    }
+
+    #refreshBtn {
+      background: #fff;
+      color: #4285f4;
+      border: 1px solid #4285f4;
+      margin-bottom: 16px;
+    }
+
+    #refreshBtn:hover {
+      background: #f8f9fa;
+    }
+
+    .settings-panel {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #e0e0e0;
+    }
+    
+    .api-key-input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 8px;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+    }
+    
+    .debug-panel {
+      margin-top: 16px;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      font-size: 12px;
+    }
+    
+    .debug-section {
+      margin-bottom: 12px;
+    }
+    
+    .debug-title {
+      font-weight: 500;
+      color: #202124;
+      margin-bottom: 4px;
+    }
+    
+    .debug-content {
+      white-space: pre-wrap;
+      word-break: break-all;
+      background: #fff;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #e0e0e0;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .confidence {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #e8f0fe;
+      color: #1967d2;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    
+    /* 进度条容器 */
+    .progress-container {
+      display: none;  /* 默认隐藏 */
+      margin: 16px 0;
+      text-align: center;
+    }
+    
+    /* 进度条动画 */
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background-color: #e0e0e0;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    
+    .progress-bar-inner {
+      width: 100%;
+      height: 100%;
+      background-color: #4285f4;
+      animation: progress 2s infinite linear;
+      transform-origin: 0% 50%;
+    }
+    
+    .progress-text {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #5f6368;
+    }
+    
+    @keyframes progress {
+      0% {
+        transform: translateX(-100%);
+      }
+      100% {
+        transform: translateX(100%);
+      }
+    }
+    
+    /* 添加倒计时样式 */
+    .progress-timer {
+      margin-top: 4px;
+      font-size: 12px;
+      color: #5f6368;
+      font-family: monospace;
+    }
+
+    .model-select {
+      margin: 8px 0;
+    }
+    
+    .model-input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+    }
+    
+    .model-params {
+      margin: 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .model-params input[type="range"] {
+      flex: 1;
+    }
+
+    /* 添加按钮状态样式 */
+    .btn-success {
+      background-color: #34A853 !important;  /* Google 绿色 */
+      position: relative;
+    }
+
+    .btn-transition {
+      transition: all 0.3s ease;
+    }
+
+    /* 添加波纹效果 */
+    .btn-ripple {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-ripple::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 5px;
+      height: 5px;
+      background: rgba(255, 255, 255, .5);
+      opacity: 0;
+      border-radius: 100%;
+      transform: scale(1, 1) translate(-50%);
+      transform-origin: 50% 50%;
+    }
+
+    .btn-ripple.success::after {
+      animation: ripple 1s ease-out;
+    }
+
+    @keyframes ripple {
+      0% {
+        transform: scale(0, 0);
+        opacity: 0.5;
+      }
+      100% {
+        transform: scale(100, 100);
+        opacity: 0;
+      }
+    }
+
+    .event-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .event-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1a73e8;
+    }
+
+    .confidence-badge {
+      background: #e8f0fe;
+      color: #1967d2;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+
+    .event-details {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .detail-label {
+      color: #5f6368;
+      font-weight: 500;
+      min-width: 60px;
+      display: inline-block;
+    }
+
+    .event-time {
+      background: #f8f9fa;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border-left: 4px solid #1a73e8;
+    }
+
+    .time-range {
+      margin-left: 60px;
+      color: #1a73e8;
+    }
+
+    .time-separator {
+      color: #5f6368;
+      margin: 0 8px;
+    }
+
+    .event-location {
+      background: #f8f9fa;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border-left: 4px solid #34a853;
+    }
+
+    .location-text {
+      color: #34a853;
+    }
+
+    .event-description {
+      background: #f8f9fa;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border-left: 4px solid #ea4335;
+    }
+
+    .description-text {
+      color: #3c4043;
+    }
+
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .primary-btn {
+      background: #1a73e8;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .secondary-btn {
+      background: #fff;
+      color: #1a73e8;
+      border: 1px solid #1a73e8;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .download-btn {
+      background: #34a853;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      margin-top: 16px;
+      transition: all 0.2s;
+    }
+
+    .reasoning-card {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+
+    .reasoning-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #202124;
+      margin-bottom: 8px;
+    }
+
+    .reasoning-content {
+      color: #3c4043;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* 添加关键要素高亮样式 */
+    .highlight-event {
+      color: #1a73e8;
+      font-weight: 500;
+    }
+
+    .highlight-time {
+      color: #34a853;
+      font-weight: 500;
+    }
+
+    .highlight-location {
+      color: #ea4335;
+      font-weight: 500;
+    }
+
+    /* 添加验证按钮样式 */
+    .verify-btn {
+      background: #34a853 !important;
+      color: white !important;
+      border: none !important;
+      margin-top: 8px !important;
+    }
+    
+    .verify-btn:hover {
+      background: #2d9346 !important;
+    }
+    
+    .verification-result {
+      margin-top: 8px;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 14px;
+      display: none;
+    }
+    
+    .verification-result.error {
+      background: #fde7e9;
+      color: #d93025;
+      border: 1px solid #fad2d5;
+    }
+    
+    .verification-result.success {
+      background: #e6f4ea;
+      color: #1e8e3e;
+      border: 1px solid #ceead6;
+    }
+  </style>
+</head>
+<body>
+  <button id="refreshBtn">刷新识别</button>
+  
+  <!-- 添加进度条 -->
+  <div id="progressContainer" class="progress-container">
+    <div class="progress-bar">
+      <div class="progress-bar-inner"></div>
+    </div>
+    <div id="progressText" class="progress-text">正在分析页面内容...</div>
+    <div id="progressTimer" class="progress-timer">预计剩余时间：<span id="timeLeft">15</span> 秒</div>
+  </div>
+  
+  <div id="scheduleList"></div>
+  
+  <div class="settings-panel">
+    <input type="password" 
+           id="apiKeyInput" 
+           class="api-key-input" 
+           placeholder="输入 OpenAI API Key">
+  
+    <div class="model-select">
+      <label for="modelSelect">选择模型：</label>
+      <select id="modelSelect" class="model-input">
+        <option value="gpt-3.5-turbo">GPT-3.5-Turbo (快速)</option>
+        <option value="gpt-4">GPT-4 (更准确)</option>
+      </select>
+    </div>
+  
+    <div class="model-params">
+      <label for="temperatureInput">Temperature:</label>
+      <input type="range" id="temperatureInput" min="0" max="1" step="0.1" value="0.3">
+      <span id="temperatureValue">0.3</span>
+    </div>
+  
+    <button id="saveApiKey">保存设置</button>
+  </div>
+  
+  <script type="module" src="calendar-api.js"></script>
+  <script type="module" src="sidebar.js"></script>
+</body>
+</html>
