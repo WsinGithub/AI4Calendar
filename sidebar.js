@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', async function() {
           </div>
 
           <div class="button-group">
-            <button data-action="addToCalendar" data-index="${index}" class="primary-btn">
+            <button class="primary-btn" onclick="quickAddToGoogleCalendar(${index})" data-action="quickAdd" data-index="${index}">
               添加到 Google Calendar
             </button>
             <button data-action="copyLogseq" data-index="${index}" class="secondary-btn">
@@ -268,6 +268,36 @@ function parseISODateTime(isoString) {
     document.getElementById('temperatureInput').addEventListener('input', function(e) {
       document.getElementById('temperatureValue').textContent = e.target.value;
     });
+
+    // 添加全局事件委托
+    document.addEventListener('click', async function(event) {
+      const button = event.target.closest('button');
+      if (!button) return;
+
+      const action = button.dataset.action;
+      const index = parseInt(button.dataset.index);
+
+      if (action === 'addToCalendar') {
+        await addToGoogleCalendar(index);
+      } else if (action === 'copyLogseq') {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        const response = await chrome.tabs.sendMessage(tab.id, { 
+          action: 'getLastRecognizedSchedule'
+        });
+        
+        if (response.schedule && response.schedule.logseqContent) {
+          try {
+            await navigator.clipboard.writeText(response.schedule.logseqContent);
+            setButtonSuccess(button, '✓ 已复制');
+          } catch (error) {
+            console.error('复制失败:', error);
+            alert('复制失败');
+          }
+        }
+      } else if (action === 'quickAdd') {
+        await quickAddToGoogleCalendar(index);
+      }
+    });
   }
 
   // 添加 API key 管理
@@ -298,43 +328,6 @@ function parseISODateTime(isoString) {
       });
       alert('设置已保存');
       await refreshSchedules();
-    }
-  });
-
-  // 添加全局事件委托
-  document.addEventListener('click', async function(event) {
-    const target = event.target;
-    
-    // 处理添加到日历的点击
-    if (target.matches('[data-action="addToCalendar"]')) {
-      const eventIndex = parseInt(target.dataset.index);
-      console.log('点击添加到日历按钮，索引:', eventIndex);
-      await addToGoogleCalendar(eventIndex);
-    }
-    
-    // 处理下载的点击
-    if (target.matches('[data-action="downloadICS"]')) {
-      console.log('点击下载按钮');
-      await downloadICS();
-    }
-    
-    // 处理复制 Logseq 格式的点击
-    if (target.matches('[data-action="copyLogseq"]')) {
-      const eventIndex = parseInt(target.dataset.index);
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      const response = await chrome.tabs.sendMessage(tab.id, { 
-        action: 'getLastRecognizedSchedule'
-      });
-      
-      if (response.schedule && response.schedule.logseqContent) {
-        try {
-          await navigator.clipboard.writeText(response.schedule.logseqContent);
-          setButtonSuccess(target, '✓ 已复制');
-        } catch (error) {
-          console.error('复制失败:', error);
-          alert('复制失败');
-        }
-      }
     }
   });
 
@@ -453,6 +446,72 @@ function parseISODateTime(isoString) {
       alert('下载失败：' + error.message);
     }
   }
+
+  // 快速添加到Google Calendar（无需授权）
+  window.quickAddToGoogleCalendar = async function(eventIndex) {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      const response = await chrome.tabs.sendMessage(tab.id, { 
+        action: 'getLastRecognizedSchedule'
+      });
+      
+      if (response.schedule && response.schedule.events[eventIndex]) {
+        const event = response.schedule.events[eventIndex];
+        console.log('Event data:', event);  
+        
+        // 构造Google Calendar事件URL
+        const baseUrl = 'https://calendar.google.com/calendar/render?action=TEMPLATE';
+        const title = encodeURIComponent(event.title || '未命名事件');
+        
+        // 处理时区转换（从美东时间转换为UTC）
+        const convertToUTC = (dateStr) => {
+          // 解析日期字符串 (YYYYMMDDTHHMMSS 格式)
+          const year = parseInt(dateStr.substring(0, 4));
+          const month = parseInt(dateStr.substring(4, 6)) - 1; // 月份从0开始
+          const day = parseInt(dateStr.substring(6, 8));
+          const hour = parseInt(dateStr.substring(9, 11));
+          const minute = parseInt(dateStr.substring(11, 13));
+          const second = parseInt(dateStr.substring(13, 15));
+
+          // 创建美东时间的日期对象
+          const etDate = new Date(year, month, day, hour, minute, second);
+          
+          // 转换为UTC
+          const utcYear = etDate.getUTCFullYear();
+          const utcMonth = String(etDate.getUTCMonth() + 1).padStart(2, '0');
+          const utcDay = String(etDate.getUTCDate()).padStart(2, '0');
+          const utcHour = String(etDate.getUTCHours()).padStart(2, '0');
+          const utcMinute = String(etDate.getUTCMinutes()).padStart(2, '0');
+          const utcSecond = String(etDate.getUTCSeconds()).padStart(2, '0');
+
+          return `${utcYear}${utcMonth}${utcDay}T${utcHour}${utcMinute}${utcSecond}Z`;
+        };
+
+        const startTime = convertToUTC(event.startDate);
+        const endTime = convertToUTC(event.endDate);
+        
+        // 构造详细信息
+        const details = encodeURIComponent(event.description || '');
+        const location = encodeURIComponent(event.location || '');
+
+        // 组合完整的URL
+        const url = `${baseUrl}&text=${title}&dates=${startTime}/${endTime}&details=${details}&location=${location}`;
+        console.log('Google Calendar URL:', url);
+
+        // 在新标签页中打开Google Calendar
+        window.open(url, '_blank');
+        
+        // 更新按钮状态
+        const button = document.querySelector(`[data-action="quickAdd"][data-index="${eventIndex}"]`);
+        if (button) {
+          setButtonSuccess(button, '✓ 已打开');
+        }
+      }
+    } catch (error) {
+      console.error('快速添加失败:', error);
+      alert('快速添加失败: ' + error.message);
+    }
+  };
 
   // 执行初始化
   await initialize();
