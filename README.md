@@ -11,7 +11,7 @@ AI4Calendar 是一个智能的 Chrome 扩展，它可以自动识别网页中的
 - 🌐 多场景支持：支持邮件、网页等多种场景的日程识别
 - ⚡ 无需授权：使用 Google Calendar 快速添加链接，无需账号授权
 
-![扩展界面预览](images/screenshot.png)
+![扩展界面预览](./images/screenshot.png)
 
 ## 安装方法
 

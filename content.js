@@ -43,7 +43,7 @@ async function extractScheduleInfo() {
     const modelConfig = config.modelConfig || {
       model: "gpt-3.5-turbo",
       temperature: 0.3,
-      max_tokens: 1000
+      max_tokens: 3000
     };
 
     console.log('使用模型配置:', modelConfig);
