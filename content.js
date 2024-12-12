@@ -94,7 +94,7 @@ async function extractScheduleInfo() {
       ---ICS_END---
 
       ---LOGSEQ_START---
-      - TODO 事件标题 @地点 #Event
+      - TODO 事件标题 @地点 #PennEvent
       SCHEDULED: <2024-03-21 Thu 10:00> 
       :AGENDA:
       estimated: 1h
