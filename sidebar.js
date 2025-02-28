@@ -271,10 +271,16 @@ function parseISODateTime(isoString) {
   async function initialize() {
     const config = await chrome.storage.local.get(['openaiApiKey', 'modelConfig']);
     
+    // 设置默认模型配置
     if (config.modelConfig) {
       document.getElementById('modelSelect').value = config.modelConfig.model;
       document.getElementById('temperatureInput').value = config.modelConfig.temperature;
       document.getElementById('temperatureValue').textContent = config.modelConfig.temperature;
+    } else {
+      // 首次使用时设置默认值
+      document.getElementById('modelSelect').value = 'gpt-4o-mini';
+      document.getElementById('temperatureInput').value = 0.3;
+      document.getElementById('temperatureValue').textContent = '0.3';
     }
     
     if (config.openaiApiKey) {
