@@ -278,43 +278,4 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse({ success: true });
     return true;
   }
-  else if (request.action === 'verifySchedule') {
-    fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: "gpt-4",
-        messages: [{
-          role: "user",
-          content: request.prompt
-        }],
-        temperature: 0.7,
-        max_tokens: 800
-      })
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('验证请求失败');
-      }
-      return response.json();
-    })
-    .then(data => {
-      const verificationResult = JSON.parse(data.choices[0].message.content);
-      sendResponse({
-        success: true,
-        result: verificationResult
-      });
-    })
-    .catch(error => {
-      console.error('验证失败:', error);
-      sendResponse({
-        success: false,
-        error: error.message
-      });
-    });
-    return true;
-  }
 });
