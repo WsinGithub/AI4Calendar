@@ -19,11 +19,41 @@ function extractPageContent() {
   } catch (error) {
     console.error('提取邮件时间失败:', error);
   }
+  
+  // 提取所有链接，特别是会议链接（如Zoom）
+  const links = {};
+  try {
+    const allLinks = emailBody.querySelectorAll('a');
+    allLinks.forEach(link => {
+      const href = link.getAttribute('href');
+      const text = link.textContent.trim();
+      
+      if (href) {
+        // 识别常见会议链接
+        if (href.includes('zoom.us')) {
+          links.zoom = links.zoom || href;
+        } else if (href.includes('teams.microsoft.com')) {
+          links.teams = links.teams || href;
+        } else if (href.includes('meet.google.com')) {
+          links.gmeet = links.gmeet || href;
+        } else if (href.includes('webex.com')) {
+          links.webex = links.webex || href;
+        }
+        
+        // 保存链接文本与URL的对应关系
+        links[text] = href;
+      }
+    });
+    console.log('提取到的链接:', links);
+  } catch (error) {
+    console.error('提取链接失败:', error);
+  }
 
   const extractedContent = {
     text: emailBody.innerText,
     html: emailBody.innerHTML,
-    emailDate: emailDate ? emailDate.toISOString() : null
+    emailDate: emailDate ? emailDate.toISOString() : null,
+    links: links
   };
   console.log('提取到的页面内容:', extractedContent);
   return extractedContent;
@@ -62,6 +92,10 @@ async function extractScheduleInfo() {
       4. 地点可以是实体地点或线上会议链接
       5. 每个事件生成独立的 VEVENT 条目
       6. 如果文本中提到"每周"、"每月"等重复模式，请添加 RRULE 属性
+      7. 优先使用邮件中提取到的会议链接，特别是在LOCATION字段使用
+
+      邮件中提取到的链接:
+      ${JSON.stringify(pageContent.links, null, 2)}
 
       请按照以下格式返回：
 
@@ -87,14 +121,14 @@ async function extractScheduleInfo() {
       SUMMARY:事件标题
       DTSTART;TZID=America/New_York:20240321T100000
       DTEND;TZID=America/New_York:20240321T110000
-      LOCATION:地点
+      LOCATION:地点或会议链接 (邮件中提取到的链接可以在这里使用！)
       DESCRIPTION:描述
       END:VEVENT
       END:VCALENDAR
       ---ICS_END---
 
       ---LOGSEQ_START---
-      - TODO 事件标题 @地点 #PennEvent
+      - TODO 事件标题 @地点或会议链接 #PennEvent
       SCHEDULED: <2024-03-21 Thu 10:00> 
       :AGENDA:
       estimated: 1h
