@@ -62,6 +62,8 @@ AI4Calendar 是一个智能的 Chrome 扩展，它可以自动识别网页中的
 - 添加图像识别支持（可选功能）
 - 优化提取算法，支持识别图片中的日程信息
 - 新增用户配置选项，可自行控制是否启用图像识别
+- ![image](https://github.com/user-attachments/assets/e86db6c1-7077-4a1d-b2fa-13ea2098de27)
+
 
 ### v0.4.3
 - 改进邮件内容解析，自动提取和使用会议链接
