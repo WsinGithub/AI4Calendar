@@ -4,7 +4,7 @@ console.log('content script loaded');
 let lastRecognizedSchedule = null;
 
 // 提取页面文本内容和邮件元数据
-function extractPageContent() {
+async function extractPageContent() {
   const emailBody = document.querySelector('.a3s.aiL') || document.body;
   
   // 尝试获取邮件时间
@@ -49,18 +49,87 @@ function extractPageContent() {
     console.error('提取链接失败:', error);
   }
 
+  // 检查是否启用图像识别
+  const config = await chrome.storage.local.get(['enableImageRecognition']);
+  const enableImageRecognition = config.enableImageRecognition === true;
+  
+  // 初始化图像数据
+  let extractedImages = [];
+  
+  // 提取图像（仅在启用时）
+  if (enableImageRecognition) {
+    try {
+      const allImages = emailBody.querySelectorAll('img');
+      console.log('找到图片数量:', allImages.length);
+      
+      // 过滤并提取图片
+      for (const img of allImages) {
+        const src = img.getAttribute('src');
+        const alt = img.getAttribute('alt') || '';
+        const width = img.width;
+        const height = img.height;
+        
+        // 跳过小图标、表情符号等小图片
+        if (width < 100 || height < 100 || !src) {
+          continue;
+        }
+        
+        // 跳过常见的图标、logo等
+        if (src.includes('icon') || src.includes('logo') || alt.includes('icon') || alt.includes('logo')) {
+          continue;
+        }
+        
+        try {
+          // 将图片转换为base64
+          const response = await fetch(src);
+          const blob = await response.blob();
+          const base64 = await new Promise(resolve => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+          });
+          
+          extractedImages.push({
+            src: src,
+            base64: base64,
+            alt: alt,
+            width: width,
+            height: height
+          });
+          
+          console.log('提取到图片:', src);
+          
+          // 最多提取3张图片，避免API成本过高
+          if (extractedImages.length >= 3) {
+            break;
+          }
+        } catch (imgError) {
+          console.error('图片处理失败:', imgError);
+        }
+      }
+      
+      console.log('成功提取图片数量:', extractedImages.length);
+    } catch (error) {
+      console.error('提取图片失败:', error);
+    }
+  } else {
+    console.log('图像识别未启用，跳过图像提取');
+  }
+
   const extractedContent = {
     text: emailBody.innerText,
     html: emailBody.innerHTML,
     emailDate: emailDate ? emailDate.toISOString() : null,
-    links: links
+    links: links,
+    images: extractedImages,
+    imageRecognitionEnabled: enableImageRecognition
   };
   console.log('提取到的页面内容:', extractedContent);
   return extractedContent;
 }
 
 async function extractScheduleInfo() {
-  const pageContent = extractPageContent();
+  const pageContent = await extractPageContent();
   
   try {
     // 获取 API key 和模型配置
@@ -78,8 +147,17 @@ async function extractScheduleInfo() {
 
     console.log('使用模型配置:', modelConfig);
 
-    const prompt = `
-      你是一个日程识别助手。请分析以下文本，提取日程信息并生成两种格式：ICS 格式和 Logseq TODO 格式。
+    // 准备消息数组
+    const messages = [
+      {
+        role: "system",
+        content: "你是一个专业的日程识别助手，善于生成标准ICS格式的日历文件。"
+      }
+    ];
+    
+    // 基础提示词
+    let userPrompt = `
+      你是一个日程识别助手。请分析以下文本${pageContent.imageRecognitionEnabled ? '和图像' : ''}，提取日程信息并生成两种格式：ICS 格式和 Logseq TODO 格式。
 
       要求：
       1. 识别文本中所有可能的日程事件
@@ -96,6 +174,8 @@ async function extractScheduleInfo() {
 
       邮件中提取到的链接:
       ${JSON.stringify(pageContent.links, null, 2)}
+      
+      ${pageContent.imageRecognitionEnabled ? '分析提供的图片中可能存在的日程信息，特别是海报、截图或文档图片中的日期、时间、地点等。' : ''}
 
       请按照以下格式返回：
 
@@ -144,8 +224,40 @@ async function extractScheduleInfo() {
       待分析文本：
       ${pageContent.text}
     `;
+    
+    messages.push({
+      role: "user",
+      content: userPrompt
+    });
+    
+    // 如果启用了图像识别并且有图片，添加图片到消息中
+    if (pageContent.imageRecognitionEnabled && pageContent.images.length > 0) {
+      const content = [
+        {
+          type: "text",
+          text: userPrompt
+        }
+      ];
+      
+      // 添加图片内容
+      for (const image of pageContent.images) {
+        content.push({
+          type: "image_url",
+          image_url: {
+            url: image.base64,
+            detail: "high"
+          }
+        });
+      }
+      
+      // 替换第一个消息为包含图片的消息
+      messages[1] = {
+        role: "user",
+        content: content
+      };
+    }
 
-    console.log('准备发送到 OpenAI 的提示词:', prompt);
+    console.log('准备发送到 OpenAI 的提示词:', messages);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -155,13 +267,7 @@ async function extractScheduleInfo() {
       },
       body: JSON.stringify({
         model: modelConfig.model,
-        messages: [{
-          role: "system",
-          content: "你是一个专业的日程识别助手，善于生成标准ICS格式的日历文件。"
-        }, {
-          role: "user",
-          content: prompt
-        }],
+        messages: messages,
         temperature: modelConfig.temperature,
         max_tokens: modelConfig.max_tokens
       })

@@ -269,7 +269,7 @@ function parseISODateTime(isoString) {
 
   // 初始化函数
   async function initialize() {
-    const config = await chrome.storage.local.get(['openaiApiKey', 'modelConfig']);
+    const config = await chrome.storage.local.get(['openaiApiKey', 'modelConfig', 'enableImageRecognition']);
     
     // 设置默认模型配置
     if (config.modelConfig) {
@@ -281,6 +281,14 @@ function parseISODateTime(isoString) {
       document.getElementById('modelSelect').value = 'gpt-4o-mini';
       document.getElementById('temperatureInput').value = 0.3;
       document.getElementById('temperatureValue').textContent = '0.3';
+    }
+    
+    // 设置图像识别选项
+    if (config.enableImageRecognition !== undefined) {
+      document.getElementById('enableImageRecognition').checked = config.enableImageRecognition;
+    } else {
+      // 默认关闭图像识别
+      document.getElementById('enableImageRecognition').checked = false;
     }
     
     if (config.openaiApiKey) {
@@ -355,6 +363,7 @@ function parseISODateTime(isoString) {
     const apiKey = apiKeyInput.value.trim();
     const model = document.getElementById('modelSelect').value;
     const temperature = parseFloat(document.getElementById('temperatureInput').value);
+    const enableImageRecognition = document.getElementById('enableImageRecognition').checked;
     
     if (apiKey) {
       await chrome.storage.local.set({ 
@@ -363,7 +372,8 @@ function parseISODateTime(isoString) {
           model: model,
           temperature: temperature,
           max_tokens: 1000
-        }
+        },
+        enableImageRecognition: enableImageRecognition
       });
       alert('设置已保存');
       await refreshSchedules();

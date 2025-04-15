@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AI4Calendar - 智能日程助手",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "使用 AI 智能识别网页中的日程信息，支持一键添加到 Google Calendar 或导出 ICS 文件",
   "permissions": [
     "activeTab",
