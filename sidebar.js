@@ -220,7 +220,17 @@ function parseISODateTime(isoString) {
     const minute = parseInt(timeStr.substr(11, 2));
     const second = parseInt(timeStr.substr(13, 2) || '00');
 
-    return new Date(year, month, day, hour, minute, second);
+    // 验证年份是否合理
+    const currentYear = new Date().getFullYear();
+    let yearToUse = year;
+    
+    // 如果年份小于当前年份，使用当前年份
+    if (year < currentYear) {
+      yearToUse = currentYear;
+      console.log(`在日期解析时修正年份: ${year} -> ${currentYear}`);
+    }
+
+    return new Date(yearToUse, month, day, hour, minute, second);
   } catch (error) {
     console.error('解析时间失败:', error, isoString);
     return null;
@@ -514,16 +524,29 @@ function parseISODateTime(isoString) {
         
         // 处理时区转换（从美东时间转换为UTC）
         const convertToUTC = (dateStr) => {
-          // 解析日期字符串 (YYYYMMDDTHHMMSS 格式)
+          if (!dateStr) return '';
+          
+          // 检查年份是否合理
           const year = parseInt(dateStr.substring(0, 4));
-          const month = parseInt(dateStr.substring(4, 6)) - 1; // 月份从0开始
-          const day = parseInt(dateStr.substring(6, 8));
-          const hour = parseInt(dateStr.substring(9, 11));
-          const minute = parseInt(dateStr.substring(11, 13));
-          const second = parseInt(dateStr.substring(13, 15));
+          const currentYear = new Date().getFullYear();
+          
+          // 如果年份小于当前年份，使用当前年份替换
+          let correctedDateStr = dateStr;
+          if (year < currentYear) {
+            correctedDateStr = currentYear + dateStr.substring(4);
+            console.log(`修正日期年份: ${year} -> ${currentYear}`);
+          }
+          
+          // 解析日期字符串 (YYYYMMDDTHHMMSS 格式)
+          const yearToUse = parseInt(correctedDateStr.substring(0, 4));
+          const month = parseInt(correctedDateStr.substring(4, 6)) - 1; // 月份从0开始
+          const day = parseInt(correctedDateStr.substring(6, 8));
+          const hour = parseInt(correctedDateStr.substring(9, 11));
+          const minute = parseInt(correctedDateStr.substring(11, 13));
+          const second = parseInt(correctedDateStr.substring(13, 15) || '00');
 
           // 创建美东时间的日期对象
-          const etDate = new Date(year, month, day, hour, minute, second);
+          const etDate = new Date(yearToUse, month, day, hour, minute, second);
           
           // 转换为UTC
           const utcYear = etDate.getUTCFullYear();

@@ -3,6 +3,68 @@ console.log('content script loaded');
 // 使用简单的全局变量作为缓存
 let lastRecognizedSchedule = null;
 
+// 获取当前年份的函数
+function getCurrentYear() {
+  return new Date().getFullYear();
+}
+
+// 验证并修正事件日期年份
+function validateAndCorrectEventDates(events, icsContent, logseqContent) {
+  const currentYear = getCurrentYear();
+  let updatedIcsContent = icsContent;
+  let updatedLogseqContent = logseqContent;
+  
+  events.forEach(event => {
+    // 检查并修正开始日期年份
+    if (event.startDate) {
+      // 如果年份是过去的年份，修正为当前年份
+      const startYear = parseInt(event.startDate.substring(0, 4));
+      if (startYear < currentYear) {
+        const oldStartDate = event.startDate;
+        event.startDate = currentYear + event.startDate.substring(4);
+        console.log(`修正开始日期年份: ${startYear} -> ${currentYear}`);
+        
+        // 更新ICS内容
+        updatedIcsContent = updatedIcsContent.replace(
+          `DTSTART;TZID=America/New_York:${oldStartDate}`,
+          `DTSTART;TZID=America/New_York:${event.startDate}`
+        );
+        
+        // 更新Logseq内容
+        if (updatedLogseqContent) {
+          // 将旧年份替换为新年份 (格式如 <2023-12-25 Mon 14:00>)
+          updatedLogseqContent = updatedLogseqContent.replace(
+            new RegExp(`<${startYear}-`, 'g'),
+            `<${currentYear}-`
+          );
+        }
+      }
+    }
+    
+    // 检查并修正结束日期年份
+    if (event.endDate) {
+      const endYear = parseInt(event.endDate.substring(0, 4));
+      if (endYear < currentYear) {
+        const oldEndDate = event.endDate;
+        event.endDate = currentYear + event.endDate.substring(4);
+        console.log(`修正结束日期年份: ${endYear} -> ${currentYear}`);
+        
+        // 更新ICS内容
+        updatedIcsContent = updatedIcsContent.replace(
+          `DTEND;TZID=America/New_York:${oldEndDate}`,
+          `DTEND;TZID=America/New_York:${event.endDate}`
+        );
+      }
+    }
+  });
+  
+  return {
+    correctedEvents: events,
+    updatedIcsContent: updatedIcsContent,
+    updatedLogseqContent: updatedLogseqContent
+  };
+}
+
 // 提取页面文本内容和邮件元数据
 async function extractPageContent() {
   const emailBody = document.querySelector('.a3s.aiL') || document.body;
@@ -130,6 +192,7 @@ async function extractPageContent() {
 
 async function extractScheduleInfo() {
   const pageContent = await extractPageContent();
+  const currentYear = getCurrentYear();
   
   try {
     // 获取 API key 和模型配置
@@ -166,6 +229,7 @@ async function extractScheduleInfo() {
          - 如果遇到"明天"、"下周"等相对时间，请基于邮件发送时间 ${pageContent.emailDate} 来计算
          - 如果没有提供发送时间，则基于当前时间计算
          - 优先使用明确的日期时间
+         - 当文本中没有明确提到年份时，请使用当前年份(${currentYear})
       3. 如无结束时间：会议默认1小时，活动默认2小时，全天事件用当天全天
       4. 地点可以是实体地点或线上会议链接
       5. 每个事件生成独立的 VEVENT 条目
@@ -185,13 +249,13 @@ async function extractScheduleInfo() {
       BEGIN:VTIMEZONE
       TZID:America/New_York
       BEGIN:STANDARD
-      DTSTART:20241103T020000
+      DTSTART:${currentYear}1103T020000
       TZOFFSETFROM:-0400
       TZOFFSETTO:-0500
       RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=11
       END:STANDARD
       BEGIN:DAYLIGHT
-      DTSTART:20240310T020000
+      DTSTART:${currentYear}0310T020000
       TZOFFSETFROM:-0500
       TZOFFSETTO:-0400
       RRULE:FREQ=YEARLY;BYDAY=2SU;BYMONTH=3
@@ -199,8 +263,8 @@ async function extractScheduleInfo() {
       END:VTIMEZONE
       BEGIN:VEVENT
       SUMMARY:事件标题
-      DTSTART;TZID=America/New_York:20240321T100000
-      DTEND;TZID=America/New_York:20240321T110000
+      DTSTART;TZID=America/New_York:${currentYear}0321T100000
+      DTEND;TZID=America/New_York:${currentYear}0321T110000
       LOCATION:地点或会议链接 (邮件中提取到的链接可以在这里使用！)
       DESCRIPTION:描述
       END:VEVENT
@@ -209,7 +273,7 @@ async function extractScheduleInfo() {
 
       ---LOGSEQ_START---
       - TODO 事件标题 @地点或会议链接 #PennEvent
-      SCHEDULED: <2024-03-21 Thu 10:00> 
+      SCHEDULED: <${currentYear}-03-21 Thu 10:00> 
       :AGENDA:
       estimated: 1h
       :END:
@@ -315,12 +379,15 @@ async function extractScheduleInfo() {
       });
     }
 
+    // 验证并修正事件日期年份
+    const { correctedEvents, updatedIcsContent, updatedLogseqContent } = validateAndCorrectEventDates(events, icsContent, logseqContent);
+
     return {
-      events: events,
+      events: correctedEvents,
       confidence: confidence,
       reasoning: reasoning,
-      icsContent: icsContent,
-      logseqContent: logseqContent,
+      icsContent: updatedIcsContent,
+      logseqContent: updatedLogseqContent,
       debug: {
         sentText: pageContent.text,
         emailDate: pageContent.emailDate,
