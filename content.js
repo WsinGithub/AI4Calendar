@@ -67,25 +67,116 @@ function validateAndCorrectEventDates(events, icsContent, logseqContent) {
 
 // 提取页面文本内容和邮件元数据
 async function extractPageContent() {
-  const emailBody = document.querySelector('.a3s.aiL') || document.body;
+  // 获取配置
+  const config = await chrome.storage.local.get(['processAllEmails']);
+  const processAllEmails = config.processAllEmails !== false; // 默认开启
   
-  // 尝试获取邮件时间
-  let emailDate = null;
+  // 尝试获取邮件主题
+  let emailSubject = '';
   try {
-    // Gmail 邮件时间选择器
-    const timeElement = document.querySelector('.g3');
-    if (timeElement) {
-      emailDate = new Date(timeElement.getAttribute('title') || timeElement.textContent);
-      console.log('提取到的邮件时间:', emailDate);
+    // Gmail邮件主题选择器
+    const subjectElement = document.querySelector('.hP');
+    if (subjectElement) {
+      emailSubject = subjectElement.textContent.trim();
+      console.log('提取到的邮件主题:', emailSubject);
     }
   } catch (error) {
-    console.error('提取邮件时间失败:', error);
+    console.error('提取邮件主题失败:', error);
   }
   
-  // 提取所有链接，特别是会议链接（如Zoom）
+  // 获取所有邮件
+  const emailElements = document.querySelectorAll('.a3s.aiL');
+  let emailContent = '';
+  let emailsData = [];
+  
+  if (emailElements.length > 0) {
+    // 处理所有邮件(无论配置如何，都收集数据，但根据配置决定如何使用)
+    for (let i = 0; i < emailElements.length; i++) {
+      const emailElement = emailElements[i];
+      const emailContainer = emailElement.closest('.gs');
+      
+      // 获取发件人信息
+      let sender = 'Unknown';
+      let senderEmail = '';
+      try {
+        if (emailContainer) {
+          // 尝试获取发件人名称
+          const senderNameElement = emailContainer.querySelector('.gD');
+          if (senderNameElement) {
+            sender = senderNameElement.textContent.trim();
+          }
+          
+          // 尝试获取发件人邮箱
+          const senderEmailElement = emailContainer.querySelector('.go');
+          if (senderEmailElement) {
+            const emailMatch = senderEmailElement.textContent.match(/<([^>]+)>/);
+            senderEmail = emailMatch ? emailMatch[1] : '';
+          }
+        }
+      } catch (error) {
+        console.error('提取发件人信息失败:', error);
+      }
+      
+      // 获取邮件时间
+      let emailTime = '';
+      try {
+        if (emailContainer) {
+          const timeElement = emailContainer.querySelector('.g3');
+          if (timeElement) {
+            emailTime = timeElement.getAttribute('title') || timeElement.textContent.trim();
+          }
+        }
+      } catch (error) {
+        console.error('提取邮件时间失败:', error);
+      }
+      
+      // 获取邮件正文
+      const emailText = emailElement.innerText.trim();
+      
+      // 将邮件信息添加到数组
+      emailsData.push({
+        sender: sender,
+        email: senderEmail,
+        time: emailTime,
+        content: emailText
+      });
+    }
+    
+    // 构建结构化的邮件内容
+    // 如果是单封邮件或未启用多邮件处理，只处理第一封
+    if (!processAllEmails || emailsData.length === 1) {
+      emailContent = emailsData[0].content;
+    } else {
+      // 处理多封邮件，按照从新到旧的顺序组织
+      emailContent = `主题: ${emailSubject}\n\n`;
+      
+      for (let i = 0; i < emailsData.length; i++) {
+        const email = emailsData[i];
+        emailContent += `[邮件 ${i+1}]\n`;
+        emailContent += `发件人: ${email.sender}${email.email ? ` <${email.email}>` : ''}\n`;
+        emailContent += `时间: ${email.time}\n`;
+        emailContent += `---\n${email.content}\n\n`;
+        
+        if (i < emailsData.length - 1) {
+          emailContent += `--- 邮件分割线 ---\n\n`;
+        }
+      }
+    }
+  } else {
+    // 如果没有找到邮件元素，回退到整个页面内容
+    emailContent = document.body.innerText;
+    emailsData = [{
+      sender: 'Unknown',
+      email: '',
+      time: '',
+      content: emailContent
+    }];
+  }
+  
+  // 提取所有链接，特别是会议链接
   const links = {};
   try {
-    const allLinks = emailBody.querySelectorAll('a');
+    const allLinks = document.querySelectorAll('a');
     allLinks.forEach(link => {
       const href = link.getAttribute('href');
       const text = link.textContent.trim();
@@ -110,10 +201,10 @@ async function extractPageContent() {
   } catch (error) {
     console.error('提取链接失败:', error);
   }
-
+  
   // 检查是否启用图像识别
-  const config = await chrome.storage.local.get(['enableImageRecognition']);
-  const enableImageRecognition = config.enableImageRecognition === true;
+  const configImage = await chrome.storage.local.get(['enableImageRecognition']);
+  const enableImageRecognition = configImage.enableImageRecognition === true;
   
   // 初始化图像数据
   let extractedImages = [];
@@ -121,7 +212,7 @@ async function extractPageContent() {
   // 提取图像（仅在启用时）
   if (enableImageRecognition) {
     try {
-      const allImages = emailBody.querySelectorAll('img');
+      const allImages = document.querySelectorAll('img');
       console.log('找到图片数量:', allImages.length);
       
       // 过滤并提取图片
@@ -178,14 +269,19 @@ async function extractPageContent() {
     console.log('图像识别未启用，跳过图像提取');
   }
 
+  // 返回更加结构化的内容
   const extractedContent = {
-    text: emailBody.innerText,
-    html: emailBody.innerHTML,
-    emailDate: emailDate ? emailDate.toISOString() : null,
+    subject: emailSubject,
+    text: emailContent,
+    originalText: emailsData.map(e => e.content).join('\n\n'), // 保存原始文本用于备份
+    emails: emailsData, // 结构化的邮件数据
+    emailCount: emailsData.length,
+    isMultipleEmails: emailsData.length > 1,
     links: links,
-    images: extractedImages,
-    imageRecognitionEnabled: enableImageRecognition
+    imageRecognitionEnabled: enableImageRecognition,
+    images: extractedImages
   };
+  
   console.log('提取到的页面内容:', extractedContent);
   return extractedContent;
 }
@@ -218,16 +314,19 @@ async function extractScheduleInfo() {
       }
     ];
     
-    // 基础提示词
+    // 准备提示词
     let userPrompt = `
-      你是一个日程识别助手。请分析以下文本${pageContent.imageRecognitionEnabled ? '和图像' : ''}，提取日程信息并生成两种格式：ICS 格式和 Logseq TODO 格式。
+      你是一个日程识别助手。请分析以下${pageContent.isMultipleEmails ? '邮件对话' : '文本'}${pageContent.imageRecognitionEnabled ? '和图像' : ''}，提取日程信息并生成两种格式：ICS 格式和 Logseq TODO 格式。
+
+      ${pageContent.subject ? `邮件主题: ${pageContent.subject}` : ''}
+      
+      ${pageContent.isMultipleEmails ? `这是一个包含 ${pageContent.emailCount} 封邮件的对话。请确保综合考虑所有邮件的内容，尤其注意回复和后续邮件可能修改了最初的日程安排。` : ''}
 
       要求：
-      1. 识别文本中所有可能的日程事件
+      1. 识别${pageContent.isMultipleEmails ? '所有邮件中' : '文本中'}的所有可能的日程事件
       2. 智能推断时间：
          - 所有时间均基于美东时间 (America/New_York)
-         - 如果遇到"明天"、"下周"等相对时间，请基于邮件发送时间 ${pageContent.emailDate} 来计算
-         - 如果没有提供发送时间，则基于当前时间计算
+         - 如果遇到"明天"、"下周"等相对时间，请基于最新邮件的发送时间 ${pageContent.emails?.[0]?.time || ''} 来计算
          - 优先使用明确的日期时间
          - 当文本中没有明确提到年份时，请使用当前年份(${currentYear})
       3. 如无结束时间：会议默认1小时，活动默认2小时，全天事件用当天全天
@@ -390,7 +489,7 @@ async function extractScheduleInfo() {
       logseqContent: updatedLogseqContent,
       debug: {
         sentText: pageContent.text,
-        emailDate: pageContent.emailDate,
+        emailDate: pageContent.emails?.[0]?.time || '',
         receivedContent: data.choices[0].message.content
       }
     };

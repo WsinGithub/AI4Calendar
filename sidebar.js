@@ -279,7 +279,7 @@ function parseISODateTime(isoString) {
 
   // 初始化函数
   async function initialize() {
-    const config = await chrome.storage.local.get(['openaiApiKey', 'modelConfig', 'enableImageRecognition']);
+    const config = await chrome.storage.local.get(['openaiApiKey', 'modelConfig', 'enableImageRecognition', 'processAllEmails']);
     
     // 设置默认模型配置
     if (config.modelConfig) {
@@ -355,6 +355,14 @@ function parseISODateTime(isoString) {
         await quickAddToGoogleCalendar(index);
       }
     });
+
+    // 在sidebar.js中添加
+    document.getElementById('processAllEmailsCheckbox').addEventListener('change', function() {
+      chrome.storage.local.set({ 'processAllEmails': this.checked });
+    });
+
+    // 在初始化函数中加载保存的配置
+    await loadSettings();
   }
 
   // 添加 API key 管理
@@ -584,6 +592,12 @@ function parseISODateTime(isoString) {
       alert('快速添加失败: ' + error.message);
     }
   };
+
+  // 在初始化函数中加载保存的配置
+  async function loadSettings() {
+    const config = await chrome.storage.local.get(['processAllEmails']);
+    document.getElementById('processAllEmailsCheckbox').checked = config.processAllEmails === true;
+  }
 
   // 执行初始化
   await initialize();
