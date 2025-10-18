@@ -1,62 +1,64 @@
-# AI4Calendar Chrome 扩展
 
-AI4Calendar 是一个智能的 Chrome 扩展，它可以自动识别网页中的日程信息（支持同时识别多个事件），并提供快速添加到 Google Calendar 或复制到 Logseq 的功能。
+# AI4Calendar Chrome Extension
 
-## 主要功能
+AI4Calendar is an intelligent Chrome extension that automatically detects schedule information on webpages (supports multiple events at once) and provides quick options to add them to Google Calendar or copy them to Logseq.
 
-- 🤖 智能识别：使用 AI 自动识别网页中的日程信息
-- 📅 快速添加：一键添加事件到 Google Calendar
-- 📥 ICS 下载：支持下载标准 ICS 格式的日历文件
-- 📝 Logseq 集成：以 Logseq 格式复制事件，支持标准的任务格式
-- 🌐 多场景支持：支持邮件、网页等多种场景的日程识别
-- ⚡ 无需授权：使用 Google Calendar 快速添加链接，无需账号授权
+[English](./README.md) | [中文](./README_zh.md)
 
-<!-- ![扩展界面预览](./images/screenshot.png) -->
+## Key Features
+
+- AI-based recognition: Automatically detects schedule information using AI  
+- Quick add: One-click to add events to Google Calendar  
+- ICS download: Supports exporting standard ICS calendar files  
+- Logseq integration: Copies events in standard Logseq task format  
+- Multi-scenario support: Works with emails, webpages, and other text sources  
+- No authorization required: Uses Google Calendar quick-add links without account permissions  
+
+<!-- ![Extension Preview](./images/screenshot.png) -->
 ![google-demo](./images/ai4calendar-google-demo.gif)
 
+## Installation
 
-## 安装方法
+1. Download the source code of this extension  
+2. Open Chrome and navigate to `chrome://extensions/`  
+3. Enable "Developer mode"  
+4. Click "Load unpacked"  
+5. Select the extension folder  
 
-1. 下载本扩展的源代码
-2. 打开 Chrome 浏览器，进入扩展管理页面 (`chrome://extensions/`)
-3. 开启"开发者模式"
-4. 点击"加载已解压的扩展"
-5. 选择本扩展的目录
+## Usage
 
-## 使用说明
+1. Configure OpenAI API Key:  
+   - Click the extension icon  
+   - Enter your OpenAI API Key in the settings  
+   - Choose the desired model and parameters  
 
-1. 配置 OpenAI API Key：
-   - 点击扩展图标
-   - 在设置中填入你的 OpenAI API Key
-   - 选择合适的模型和参数
+2. Detect schedules:  
+   - Open a webpage that contains schedule or event information  
+   - Click the extension icon  
+   - Wait for AI to extract schedule data  
+   - Review the identified events  
 
-2. 识别日程：
-   - 在包含日程信息的网页上点击扩展图标
-   - 等待 AI 识别日程信息
-   - 查看识别结果
+3. Add to calendar:  
+   - Click "Add to Google Calendar"  
+   - Confirm details on the opened Google Calendar page  
+   - Click "Save"  
+   - Or click "Download ICS" to export a standard calendar file  
 
-3. 添加到日历：
-   - 点击"添加到 Google Calendar"按钮
-   - 在新打开的 Google Calendar 页面中确认信息
-   - 点击保存
-   - 或者点击"下载 ICS"按钮，获取标准日历文件
+4. Copy to Logseq:  
+   - Click "Copy Logseq Format"  
+   - Paste directly into Logseq  
 
-4. 复制到 Logseq：
-   - 点击"复制 Logseq 格式"按钮
-   - 在 Logseq 中粘贴即可
+## Logseq Format Example
 
-## Logseq 格式说明
-
-复制到 Logseq 的内容将按以下格式组织：
-```
-- TODO 事件标题 @位置 #Event
+```markdown
+- TODO Event Title @Location #Event
   SCHEDULED: <2024-12-08 Sun 14:00>
   :AGENDA:
   estimated: 1h
   :END:
-```
+````
 
-## 版本历史
+## Version History
 
 ### v0.5.0
 - 优化多邮件处理功能，支持完整提取邮件对话上下文
@@ -65,64 +67,69 @@ AI4Calendar 是一个智能的 Chrome 扩展，它可以自动识别网页中的
 - 全新的结构化数据处理流程，提升复杂场景下的识别能力
 
 ### v0.4.4
-- 添加图像识别支持（可选功能）
-- 优化提取算法，支持识别图片中的日程信息
-- 新增用户配置选项，可自行控制是否启用图像识别
-- ![image](https://github.com/user-attachments/assets/e86db6c1-7077-4a1d-b2fa-13ea2098de27)
 
+* Added optional image recognition support
+* Improved extraction algorithms to handle schedule data from images
+* Added user configuration option to enable or disable image recognition
+* ![image](https://github.com/user-attachments/assets/e86db6c1-7077-4a1d-b2fa-13ea2098de27)
 
 ### v0.4.3
-- 改进邮件内容解析，自动提取和使用会议链接
+
+* Improved email content parsing and automatic meeting link extraction
 
 ### v0.4.0
-- 添加 ICS 文件下载功能
-- 在事件卡片中添加下载按钮
-- 支持导出标准 ICS 格式的日历文件
+
+* Added ICS file download feature
+* Added download button to event cards
+* Supported exporting standard ICS calendar files
 
 ### v0.3.0
-- 修复 Logseq 复制功能，现在只复制单个选中的事件
-- 优化 Logseq 输出格式，使用标准的缩进结构
+
+* Fixed Logseq copy feature for single event selection
+* Optimized Logseq output format with standard indentation
 
 ### v0.2.0
-- 简化用户界面
-- 移除需要授权的功能
-- 使用快速添加作为主要功能
+
+* Simplified user interface
+* Removed authorization-dependent features
+* Set quick-add as the primary functionality
 
 ### v0.1.0
-- 初始版本
-- 基础日历功能实现
 
-## 技术栈
+* Initial release with basic calendar features
 
-- JavaScript (ES6+)
-- Chrome Extension APIs
-- OpenAI API
-- Google Calendar API (快速添加链接)
+## Tech Stack
 
-## 开发说明
+* JavaScript (ES6+)
+* Chrome Extension APIs
+* OpenAI API
+* Google Calendar API (Quick Add)
 
-本扩展使用纯 JavaScript 开发，不依赖任何前端框架。主要文件说明：
+## Development
 
-- `manifest.json`: 扩展配置文件
-- `content.js`: 页面内容识别逻辑
-- `sidebar.js`: 侧边栏界面交互逻辑
-- `calendar-api.js`: 日历相关功能
-- `utils/`: 工具函数目录
+This extension is developed entirely in pure JavaScript with no frontend frameworks.
 
-## 注意事项
+* `manifest.json`: Extension configuration file
+* `content.js`: Webpage content detection logic
+* `sidebar.js`: Sidebar and UI interaction logic
+* `calendar-api.js`: Calendar-related functions
+* `utils/`: Utility function directory
 
-1. 需要自己提供 OpenAI API Key
-2. 日程识别准确度依赖于网页内容的格式和清晰度
-3. 时区默认使用美东时间 (America/New_York)
+## Notes
 
-## 贡献指南
+1. You must provide your own OpenAI API Key
+2. Detection accuracy depends on the webpage’s structure and clarity
+3. Default timezone is set to America/New_York
 
-欢迎提交 Issue 和 Pull Request 来改进这个扩展。在提交代码前，请确保：
+## Contribution
 
-1. 代码风格保持一致
-2. 新功能有适当的注释说明
-3. 所有现有功能正常工作
+Contributions via Issues and Pull Requests are welcome. Please ensure the following before submitting:
 
-## 许可证
+1. Consistent coding style
+2. Proper documentation for new features
+3. All existing features remain functional
+
+## License
 
 MIT License
+
