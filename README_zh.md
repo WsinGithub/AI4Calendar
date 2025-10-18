@@ -28,7 +28,7 @@ AI4Calendar 是一个智能的 Chrome 扩展，它可以自动识别网页中的
 1. 配置 OpenAI API Key：
    - 点击扩展图标
    - 在设置中填入你的 OpenAI API Key
-   - 选择合适的模型和参数
+   - 选择合适的模型（推荐使用 GPT-5 Mini 获得最佳性能）
 
 2. 识别日程：
    - 在包含日程信息的网页上点击扩展图标
@@ -57,6 +57,12 @@ AI4Calendar 是一个智能的 Chrome 扩展，它可以自动识别网页中的
 ```
 
 ## 版本历史
+
+### v0.5.1 (最新)
+- 🚀 升级到 GPT-5 系列模型（更快更经济）
+- ✨ 新增 GPT-5 Nano（快速）、GPT-5 Mini（平衡）、GPT-5（强大）三个模型选项
+- 🔧 移除旧版 GPT-4o 系列模型
+- 💡 默认模型改为 GPT-5 Mini，性能最优
 
 ### v0.4.4
 - 添加图像识别支持（可选功能）
@@ -90,7 +96,7 @@ AI4Calendar 是一个智能的 Chrome 扩展，它可以自动识别网页中的
 
 - JavaScript (ES6+)
 - Chrome Extension APIs
-- OpenAI API
+- OpenAI API (GPT-5 系列)
 - Google Calendar API (快速添加链接)
 
 ## 开发说明

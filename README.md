@@ -30,7 +30,7 @@ AI4Calendar is an intelligent Chrome extension that automatically detects schedu
 1. Configure OpenAI API Key:  
    - Click the extension icon  
    - Enter your OpenAI API Key in the settings  
-   - Choose the desired model and parameters  
+   - Choose the desired model (GPT-5 Mini recommended for balanced performance)
 
 2. Detect schedules:  
    - Open a webpage that contains schedule or event information  
@@ -60,11 +60,17 @@ AI4Calendar is an intelligent Chrome extension that automatically detects schedu
 
 ## Version History
 
+### v0.5.1 (Latest)
+- 🚀 Upgraded to GPT-5 series models (faster and more cost-effective)
+- ✨ Added GPT-5 Nano (Fast), GPT-5 Mini (Balanced), GPT-5 (Powerful)
+- 🔧 Removed legacy GPT-4o models
+- 💡 Default model changed to GPT-5 Mini for optimal performance
+
 ### v0.5.0
-- 优化多邮件处理功能，支持完整提取邮件对话上下文
-- 增强邮件主题和发件人信息提取，提高日程识别准确度
-- 改进邮件内容处理，优化AI模型输入格式
-- 全新的结构化数据处理流程，提升复杂场景下的识别能力
+- Optimized multi-email handling to fully extract email thread context
+- Improved extraction of email subject and sender details to increase event recognition accuracy
+- Refined email content processing and optimized AI model input formatting
+- New structured-data processing pipeline to improve recognition in complex scenarios
 
 ### v0.4.4
 
@@ -102,7 +108,7 @@ AI4Calendar is an intelligent Chrome extension that automatically detects schedu
 
 * JavaScript (ES6+)
 * Chrome Extension APIs
-* OpenAI API
+* OpenAI API (GPT-5 series)
 * Google Calendar API (Quick Add)
 
 ## Development

@@ -34,6 +34,7 @@ jobs:
             popup.html \
             popup.js \
             README.md \
+            README_zh.md \
             sidebar.html \
             sidebar.js \
             utils/

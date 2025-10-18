@@ -297,9 +297,9 @@ async function extractScheduleInfo() {
       throw new Error('API key not found');
     }
 
-    // 默认使用 gpt-4o-mini，除非特别指定
+    // 默认使用 gpt-5-mini，除非特别指定
     const modelConfig = config.modelConfig || {
-      model: "gpt-4o-mini",
+      model: "gpt-5-mini",
       temperature: 0.3,
       max_tokens: 3000
     };

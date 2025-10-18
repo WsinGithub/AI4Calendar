@@ -288,7 +288,7 @@ function parseISODateTime(isoString) {
       document.getElementById('temperatureValue').textContent = config.modelConfig.temperature;
     } else {
       // 首次使用时设置默认值
-      document.getElementById('modelSelect').value = 'gpt-4o-mini';
+      document.getElementById('modelSelect').value = 'gpt-5-mini';
       document.getElementById('temperatureInput').value = 0.3;
       document.getElementById('temperatureValue').textContent = '0.3';
     }
