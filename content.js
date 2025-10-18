@@ -301,7 +301,7 @@ async function extractScheduleInfo() {
     const modelConfig = config.modelConfig || {
       model: "gpt-5-mini",
       temperature: 0.3,
-      max_tokens: 3000
+      max_completion_tokens: 10000
     };
 
     console.log('使用模型配置:', modelConfig);
@@ -432,7 +432,7 @@ async function extractScheduleInfo() {
         model: modelConfig.model,
         messages: messages,
         temperature: modelConfig.temperature,
-        max_tokens: modelConfig.max_tokens
+        max_completion_tokens: modelConfig.max_completion_tokens || modelConfig.max_tokens || 3000
       })
     });
 

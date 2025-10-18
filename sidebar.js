@@ -389,7 +389,7 @@ function parseISODateTime(isoString) {
         modelConfig: {
           model: model,
           temperature: temperature,
-          max_tokens: 1000
+          max_completion_tokens: 10000
         },
         enableImageRecognition: enableImageRecognition
       });
